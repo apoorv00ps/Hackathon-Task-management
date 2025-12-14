@@ -134,6 +134,30 @@ function startRealtimeListener(roomId) {
     roomListener = database.ref('rooms/' + roomId).on('value', (snapshot) => {
         if (snapshot.exists()) {
             const roomData = snapshot.val();
+            
+            // FIX: Ensure items is always an array
+            if (!roomData.items) {
+                roomData.items = [];
+            } else if (!Array.isArray(roomData.items)) {
+                roomData.items = Object.values(roomData.items);
+            }
+            
+            // Recursively fix children arrays
+            const fixChildren = (items) => {
+                if (!Array.isArray(items)) return;
+                items.forEach(item => {
+                    if (!item.children) {
+                        item.children = [];
+                    } else if (!Array.isArray(item.children)) {
+                        item.children = Object.values(item.children);
+                    }
+                    if (item.children.length > 0) {
+                        fixChildren(item.children);
+                    }
+                });
+            };
+            fixChildren(roomData.items);
+            
             rooms[roomId] = roomData;
             renderTree();
         }
@@ -243,9 +267,17 @@ function createItem() {
         }
     }
 
+    // Ensure items array exists
+    if (!rooms[currentRoom].items) {
+        rooms[currentRoom].items = [];
+    }
+
     if (addToParent) {
         const parent = findItemById(addToParent);
         if (parent) {
+            if (!parent.children) {
+                parent.children = [];
+            }
             parent.children.push(newItem);
             expandedNodes.add(addToParent);
         }
@@ -297,10 +329,19 @@ function toggleDeadlineSort() {
     renderTree();
 }
 
-function findItemById(id, items = rooms[currentRoom].items) {
+function findItemById(id, items) {
+    if (!items) {
+        items = rooms[currentRoom].items;
+    }
+    
+    // FIX: Ensure items is an array
+    if (!Array.isArray(items)) {
+        items = items ? Object.values(items) : [];
+    }
+    
     for (let item of items) {
         if (item.id === id) return item;
-        if (item.children.length > 0) {
+        if (item.children && item.children.length > 0) {
             let found = findItemById(id, item.children);
             if (found) return found;
         }
@@ -337,12 +378,16 @@ function deleteItem(id, event) {
 }
 
 function removeItemById(id, items) {
+    if (!Array.isArray(items)) {
+        items = items ? Object.values(items) : [];
+    }
+    
     for (let i = 0; i < items.length; i++) {
         if (items[i].id === id) {
             items.splice(i, 1);
             return true;
         }
-        if (items[i].children.length > 0) {
+        if (items[i].children && items[i].children.length > 0) {
             if (removeItemById(id, items[i].children)) {
                 return true;
             }
@@ -392,7 +437,7 @@ function renderTreeNode(item, container) {
     
     nodeDiv.className = nodeClass;
 
-    const hasChildren = item.type === 'category' && item.children.length > 0;
+    const hasChildren = item.type === 'category' && item.children && item.children.length > 0;
     const isExpanded = expandedNodes.has(item.id);
 
     if (hasChildren) {
@@ -515,7 +560,18 @@ function renderTreeNode(item, container) {
 
 function renderTree() {
     const container = document.getElementById('treeContainer');
-    let items = [...rooms[currentRoom].items];
+    
+    // FIX: Ensure items is always an array
+    let items = rooms[currentRoom].items;
+    if (!items) {
+        items = [];
+        rooms[currentRoom].items = [];
+    } else if (!Array.isArray(items)) {
+        items = Object.values(items);
+        rooms[currentRoom].items = items;
+    }
+    
+    items = [...items]; // Create a copy
 
     if (sortByPriority || sortByDeadline) {
         items = sortItems(items);
@@ -573,8 +629,11 @@ function saveRoomsToFirebase() {
     if (!currentRoom || !rooms[currentRoom]) return;
     
     database.ref('rooms/' + currentRoom).set(rooms[currentRoom])
+        .then(() => {
+            console.log('✅ Saved to Firebase successfully!');
+        })
         .catch((error) => {
-            console.error('Error saving to Firebase:', error);
+            console.error('❌ Error saving to Firebase:', error);
             alert('Failed to save changes. Please check your internet connection.');
         });
 }
