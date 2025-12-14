@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Up Task Room</title>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="welcome-screen">
+            <div class="welcome-content">
+                <h1><img src="logo.jpeg" id="logo"> Skill Up Task Room</h1>
+                <p class="subtitle">Organize your work, beautifully</p>
+                
+                <div class="welcome-cards">
+                    <div class="card">
+                        <h2>Create Room</h2>
+                        <div class="input-group">
+                            <label>Room Name</label>
+                            <input type="text" id="createRoomName" placeholder="My Project">
+                        </div>
+                        <button onclick="createRoom()">Create New Room</button>
+                    </div>
+
+                    <div class="card">
+                        <h2>Join Room</h2>
+                        <div class="input-group">
+                            <label>Room ID</label>
+                            <input type="text" id="joinRoomId" placeholder="Enter Room ID">
+                        </div>
+                        <div class="input-group">
+                            <label>Room Password</label>
+                            <input type="password" id="joinRoomPass" placeholder="Enter Password">
+                        </div>
+                        <button onclick="joinRoom()">Join Room</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <div class="header">
+                <!-- Room Info Row -->
+                <div class="room-info-row">
+                    <div class="room-badges">
+                        <div class="info-badge">
+                            🔑 ID: <span id="displayRoomId"></span>
+                        </div>
+                        <div class="info-badge">
+                            🔒 Pass: <span id="displayRoomPass"></span>
+                        </div>
+                    </div>
+                    <button class="exit-btn-header" onclick="exitRoom()">Exit Room</button>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Control Panel -->
+                <div class="control-panel">
+                    <!-- First Row: Date Filter -->
+                    <div class="control-row">
+                        <div class="control-group">
+                            <span class="control-label">📅 Select Date:</span>
+                            <input type="date" class="date-input-small" id="datePicker" onchange="filterByDate()">
+                            <button class="filter-btn small-btn" onclick="clearDateFilter()">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Second Row: Task Type Filters -->
+                    <div class="control-row">
+                        <span class="control-label">Filter Tasks:</span>
+                        <button class="filter-btn active" onclick="setFilter('all')">All Tasks</button>
+                        <button class="filter-btn" onclick="setFilter('daily')">🔄 Daily</button>
+                        <button class="filter-btn" onclick="setFilter('deadline')">📅 Deadline</button>
+                    </div>
+
+                    <!-- Third Row: Sort Options -->
+                    <div class="control-row">
+                        <div class="control-group">
+                            <span class="control-label">Sort by Priority:</span>
+                            <div class="toggle-switch" id="priorityToggle" onclick="togglePrioritySort()">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <span class="control-label">Sort by Deadline:</span>
+                            <div class="toggle-switch" id="deadlineToggle" onclick="toggleDeadlineSort()">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="showCreateModal('task', null)">+ Add Task</button>
+                    <button class="btn-primary btn-secondary" onclick="showCreateModal('category', null)">+ Add Category</button>
+                </div>
+            </div>
+
+            <div class="tree-container" id="treeContainer">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <div>Start by creating a task or category</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Create New Item</h3>
+            <div id="taskTypeSection" style="display: none;">
+                <label>Task Type</label>
+                <div class="task-type-selector">
+                    <div class="type-option selected" onclick="selectTaskType('daily')">
+                        <div>🔄 Daily Task</div>
+                        <small>Repeats every day</small>
+                    </div>
+                    <div class="type-option" onclick="selectTaskType('deadline')">
+                        <div>📅 Deadline Task</div>
+                        <small>Due by a specific date</small>
+                    </div>
+                </div>
+                <label style="margin-top: 15px;">Priority Level</label>
+                <div class="priority-selector">
+                    <div class="priority-option high selected" onclick="selectPriority('high')">
+                        <div>🔴 High</div>
+                    </div>
+                    <div class="priority-option medium" onclick="selectPriority('medium')">
+                        <div>🟡 Medium</div>
+                    </div>
+                    <div class="priority-option low" onclick="selectPriority('low')">
+                        <div>🟢 Low</div>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label id="modalLabel">Name</label>
+                <input type="text" id="modalInput" placeholder="Enter name">
+            </div>
+            <div class="input-group deadline-input" id="deadlineSection">
+                <label>Deadline</label>
+                <input type="date" id="deadlineInput">
+            </div>
+            <div class="modal-buttons">
+                <button onclick="createItem()">Create</button>
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
