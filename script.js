@@ -1,6 +1,6 @@
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCe1RF-ktACTKcI7tpW2MfrO6dXGh_UOmo",
+    apiKey: "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",
     authDomain: "tassk-room.firebaseapp.com",
     databaseURL: "https://tassk-room-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "tassk-room",
